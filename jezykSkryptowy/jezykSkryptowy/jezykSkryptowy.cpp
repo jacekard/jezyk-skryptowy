@@ -122,8 +122,6 @@ int main() {
 	stack<o::Operator*> stosOperatorow;
 	//tablica wszystkich dostepnych operatorow
 	OperatorTable OperatorList;
-	//pomocniczy stos
-	stack<variable> wyrazenieONP;
 
 	char *nazwaWyrazenia = new char[max];
 	char *line = new char[max];
@@ -134,12 +132,12 @@ int main() {
 	//**
 	//****
 	//Konwersja z notacji infiksowej do ONP / rozdzielanie wyrazen na instrukcje
-
+	
 	instrukcja = new queue<char*>();
 	bool nowaInstrukcja = false;
-
-	while (cin.getline(line, max)) {
-
+	
+	if (1) { 
+		cin.getline(line, max);
 		
 		//warunki rozdzielenia instrukcji w whilu (naprawic)
 		while (1) {
@@ -266,7 +264,7 @@ int main() {
 	kolejkaInstrukcji.push(instrukcja);
 
 	//Wypisywanie rzeczy z kolejkiInstrukcji
-	while (!kolejkaInstrukcji.empty()) {
+	/*while (!kolejkaInstrukcji.empty()) {
 		node<queue<char*>*> *node = kolejkaInstrukcji.pop();
 		queue<char*> *instrukcja = node->data;
 		while (!instrukcja->empty()) {
@@ -274,49 +272,50 @@ int main() {
 		}
 		cout << endl;
 
-	}
+	}*/
 
-	//while (kolejkaInstrukcji.pop()->data->currentElement() != NULL) {
-	//	cout << kolejkaInstrukcji.pop()->data->pop()->data << " ";
-	//}
-
-
+	//pomocniczy stos
+	stack<variable> OperatorONP;
 
 	////instrukcja
-	//while (stos.current()) {
-	//	instrukcja->add((stos.current()->id));
-	//	stos.pop();
-	//}
-	//cout << endl;
-	//while (instrukcja->current() != NULL) {
-	//	char zn = *instrukcja->current();
-	//	if (czyLitera(zn) || czyCyfra(zn)) {
-	//		onp.push(instrukcja->current());
-	//		instrukcja->del();
-	//	}
-	//	else {
-	//		
-	//		tree* szukany = search(root, onp.current());
-	//		char *wynik = new char[max];
-	//		onp.pop();
+	//while (!kolejkaInstrukcji.empty()) {
+	//	node<queue<char*>*> *node = kolejkaInstrukcji.pop();
+	//	queue<char*> *instrukcja = node->data;
+	//	while (!instrukcja->empty()) {
+	//		char zn = *instrukcja->pop()->data;
 
-	//		o::Operator *op = getOperator(instrukcja->current());
-	//		if (dynamic_cast<o::NOT*>(op)) {
-	//			int wynik_int = dynamic_cast<o::NOT*>(op)->operation(szukany->var);
-	//			
-	//			
-	//			onp.push();
-	//			B = onp.current();
-	//			onp.pop();
+	//		if (czyLitera(zn) || czyCyfra(zn)) {
+	//			OperatorONP.push(instrukcja->current());
+	//			instrukcja->pop();
 	//		}
-	//		else if (dynamic_cast<o::assign*>(op))
 	//		else {
 
-	//			onp.push(op->operation();
+	//			tree* szukany = search(root, onp.current());
+	//			char *wynik = new char[max];
+	//			onp.pop();
+
+	//			o::Operator *op = getOperator(instrukcja->current());
+	//			if (dynamic_cast<o::NOT*>(op)) {
+	//				int wynik_int = dynamic_cast<o::NOT*>(op)->operation(szukany->var);
+
+
+	//				onp.push();
+	//				B = onp.current();
+	//				onp.pop();
+	//			}
+	//			else if (dynamic_cast<o::assign*>(op))
+	//			else {
+
+	//				onp.push(op->operation();
+	//			}
+	//			//
 	//		}
-	//		//
+	//		cout << instrukcja->current() << " ";
+
 	//	}
-	//	cout << instrukcja->current() << " ";
+
+	//	
+		
 	//}
 
 

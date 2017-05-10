@@ -70,7 +70,7 @@ namespace o {
 	//	}
 	//};
 
-
+	
 	class NOT : public Operator {
 	public:
 		NOT() : Operator("!") {
