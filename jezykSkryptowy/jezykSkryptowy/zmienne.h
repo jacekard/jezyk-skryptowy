@@ -5,10 +5,12 @@ public:
 	char* key;
 	int value;
 	bool isNul;
+	bool toDisplay;
 	variable() {
 		key = '\0';
 		value = NULL;
 		isNul = true;
+		toDisplay = false;
 	}
 	int compareTo(variable &b) {
 		

@@ -1,0 +1,6 @@
+1
+n czyPotega potPotega
+n=5*5*5*5*5*5*5
+i=2
+pt=i*i
+cnt=2

@@ -5,11 +5,9 @@
 template <class T>
 class stack {
 public:
-	node<T> *s;
+	node<T> *stackPtr;
 
-	stack() {
-		s = NULL;
-	}
+	stack() : stackPtr(NULL) {}
 
 	bool empty(node<T> *p) {
 		return !p;
@@ -18,31 +16,31 @@ public:
 	void push(T data) {
 		node<T> *nowy = new node<T>;
 		nowy->data = data;
-		nowy->next = s;
-		s = nowy;
+		nowy->next = stackPtr;
+		stackPtr = nowy;
 	}
 	void pop() {
-		if (!empty(s)) {
+		if (!empty(stackPtr)) {
 			node<T> *temp = new node<T>;
-			temp = s;
-			s = s->next;
+			temp = stackPtr;
+			stackPtr = stackPtr->next;
 			delete temp;
 		}
 	}
 	void wypisz() {
-		node<T> *tmp = s;
+		node<T> *tmp = stackPtr;
 		while (!empty(tmp)) {
 			printf("%d ", tmp->data);
 			tmp = tmp->next;
 		}
 	}
 	T current() {
-		if (!empty(s))
-			return s->data;
+		if (!empty(stackPtr))
+			return stackPtr->data;
 		else return NULL;
 	}
 	int rozmiar() {
-		node<T> *tmp = s;
+		node<T> *tmp = stackPtr;
 		int a = 0;
 		while (!empty(tmp)) {
 			a++;

@@ -2,10 +2,11 @@
 
 #include "Queue.h"
 #include "Stack.h"
-#include "Operatory.h"
+//#include "Operatory.h"
 #include "tree.h"
+#include "OperatorTable.h"
 
-using namespace op;
+using namespace std;
 
 #define max 1000
 
@@ -17,108 +18,322 @@ int length(char *s) {
 	return licznik;
 }
 
+bool czyLitera(char znak) {
+
+	if ((znak >= 'A' && znak <= 'Z')
+		|| (znak >= 'a' && znak <= 'z'))
+		return true;
+	else
+		return false;
+}
+
+bool czyCyfra(char znak) {
+	bool czyCyfra;
+	if (znak >= '0' && znak <= '9')
+		return true;
+	else
+		return false;
+}
+
+
+//funkcja oblicza wyniki wyrazenia w ONP
+int CalculateONP() { return 0; }
+
 int main() {
 
+	/*
+	Zapamietanie adresu PIERWSZEGO ELEMENTU w kolejce
+
+	0a. Wczytanie licznikaOperacji (OK)
+	0b. Wczytanie zmiennych do drzewa binarnego (OK)
+	1. Rozdzielanie wyra¿eñ (OK)
+	2a. Zamiana na ONP wpisywanie wyra¿eñ do kolejek wyra¿eñ
+	3. Rozdzielenie instrukcji (trzeba rozpoznaæ co to za instrukcja)
+	4. wrzucenie instrukcji do kolejki instrukcji
+	5. Wykonanie kodu
+	6. w momencie rozpoczêcia while'a, zapisujemy tymczasowo adres instrukcji (która jest kolejk¹) na stos<queue*>
+	Dok³adnie zwracamy firstElement
+
+	*/
+
+	//**
+	//****
 	int licznikOperacji;
 	int zliczajOperacje = 0;
+	cin >> licznikOperacji;
+	//****
+	//**
 
-	queue<char*> nazwy;
-	int varCount = 0;
+	////Przyk³ad dzia³ania kolejki kolejek
+	//queue<queue<char*>*> kolejkaInstrukcji;
+	//queue<char*> *kolejka = new queue<char*>();
+	//kolejkaInstrukcji.push(kolejka);
+	//stack<queue<char*>*> stos_instrukcji;
+	//stos_instrukcji.push(kolejka);
 
-	std::cin >> licznikOperacji;
+	//node<queue<char*>*> node = kolejkaInstrukcji.pop();
+	//kolejka = node.data;
+	//kolejkaInstrukcji.head = &node;
+	////
 
+	int zliczajZmienne = 0;
 	char character = '0';
-	char *line = new char[max];
-	tree *root = NULL;
+	char *nazwaZmiennej = new char[max];
+	Tree *variableTree = new Tree();
 
-	std::cin.getline(line, max);
+	//**
+	//formatowanie
+	cin.getline(nazwaZmiennej, max);
+	//**
+
+	//**
+	//*****
+	//Funkcja dodaj¹ca zmienne na drzewo binarne 'variableTree'
 	int i = 0;
 	while (character != '\n' && character != '\r') {
-		std::cin.get(character);
+		cin.get(character);
 		if (character == ' ' || character == '\n' || character == '\r') {
-			*(line + i) = '\0';
-			nazwy.add(line);
-			line = new char[max];
+
+			*(nazwaZmiennej + i) = '\0';
+			//dodawanie obiektu 'tmp' typu variable do 'variableTree'
+			variable tmp;
+			tmp.toDisplay = true;
+			tmp.key = nazwaZmiennej;
+			variableTree->add(tmp);
+			zliczajZmienne++;
+
+			nazwaZmiennej = new char[max];
 			i = 0;
 		}
 		else {
-			*(line + i) = character;
+			*(nazwaZmiennej + i) = character;
 			i++;
 		}
 	}
-
-	varCount = nazwy.rozmiar();
-
-	for (i = 0; i < varCount; i++) {
-		variable tmp;
-		tmp.key = nazwy.current();
-		if (root != NULL)
-			insert(root, tmp);
-		else {
-			root = new tree(tmp);
-			root->parent = NULL;
-		}
-		nazwy.del();
-	}
-
-	wypisz_inorder(root);
-
-	tree* szukany = search(root, "abc");
-
-	if (szukany != NULL) {
-		std::cout << "Znaleziono: " << szukany->var.key << " => ";
-		std::cout << szukany->var << std::endl;
-	}
+	//****
+	//**
 
 
-	Operator *Operators[5];
-	Operators[0] = new minus();
-	Operators[1] = new plus();
-	Operators[2] = new multi();
-	Operators[3] = new divide();
-	Operators[4] = new assign();
+	//kolejka instrukcji, ktore sa kolejkami wyrazen
+	queue<queue<char*>*> kolejkaInstrukcji;
+	//przechowuje rozdzielone wyrazenia JEDNEJ instrukcji zapisane w kolejnoœci ONP
+	queue<char*> *instrukcja;
+	//stos operatorow potrzebny do konwersji na ONP
+	stack<o::Operator*> stosOperatorow;
+	//tablica wszystkich dostepnych operatorow
+	OperatorTable OperatorList;
+	//pomocniczy stos
+	stack<variable> wyrazenieONP;
 
-	tree* zmienna;
-	stack<tree*> vars;
-	stack<Operator*> operatory;
-	stack<int> liczby;
-	while (std::cin >> line) {
-		std::cout << line << std::endl;
-		for (int i = 0; i < length(line); i++) {
-			for (int j = 0; j < 5; j++) {
-				if (line + j == Operators[j]->id)
-					operatory.push(Operators[j]);
+	char *nazwaWyrazenia = new char[max];
+	char *line = new char[max];
+	char znak = *line;
+
+	i = 0;
+
+	//**
+	//****
+	//Konwersja z notacji infiksowej do ONP / rozdzielanie wyrazen na instrukcje
+
+	instrukcja = new queue<char*>();
+	bool nowaInstrukcja = false;
+
+	while (cin.getline(line, max)) {
+
+		
+		//warunki rozdzielenia instrukcji w whilu (naprawic)
+		while (1) {
+
+			int j = 0;
+
+			znak = *(line + i);
+
+			if (znak == '\0') {
+				break;
 			}
-			if (zmienna = search(root, line + i))
-				vars.push(zmienna);
-			else
-				liczby.push((int)line + i);
+			else if (znak == ' ' || znak == '\t') {
+				i++;
+				continue;
+			}
+
+			*(nazwaWyrazenia + j) = znak;
+
+			//Zmienne
+			if (czyLitera(znak)) {
+				while (czyLitera(*(line + i + 1))) {
+					i++;
+					*(nazwaWyrazenia + ++j) = *(line + i);
+				}
+				//i++;
+				*(nazwaWyrazenia + ++j) = '\0';
+				
+				//
+				if (nowaInstrukcja) {
+					//Konwersja na ONP
+					while (stosOperatorow.current()) {
+						instrukcja->push((stosOperatorow.current()->id));
+						stosOperatorow.pop();
+					}
+
+					kolejkaInstrukcji.push(instrukcja);
+					instrukcja = new queue<char*>();
+				}
+				nowaInstrukcja = true;
+				//
+
+				tree_node* zmienna;
+				zmienna = variableTree->search(variableTree->root, nazwaWyrazenia);
+				if (zmienna) {
+					instrukcja->push(zmienna->var.key);
+				}
+				else {
+					variable tmp;
+					tmp.key = nazwaWyrazenia;
+					variableTree->add(tmp);
+					instrukcja->push(tmp.key);
+					zliczajZmienne++;
+				}
+			}
+			//Liczby
+			else if (czyCyfra(znak)) {
+				while (czyCyfra(*(line + i + 1))) {
+					*(nazwaWyrazenia + ++j) = *(line + ++i);
+				}
+
+				//
+				if (nowaInstrukcja) {
+					//Konwersja na ONP
+					while (stosOperatorow.current()) {
+						instrukcja->push((stosOperatorow.current()->id));
+						stosOperatorow.pop();
+					}
+
+					kolejkaInstrukcji.push(instrukcja);
+					instrukcja = new queue<char*>();
+				}
+				nowaInstrukcja = true;
+				//
+
+				*(nazwaWyrazenia + j + 1) = '\0';
+				instrukcja->push(nazwaWyrazenia);
+
+			}
+			else if (znak == '(') {
+				stosOperatorow.push(new o::lnawias());
+			}
+			else if (znak == ')') {
+				while (stosOperatorow.current()->id != "(") {
+					instrukcja->push(stosOperatorow.current()->id);
+					stosOperatorow.pop();
+				}
+				stosOperatorow.pop();
+			}
+			//Operatory
+			else {
+				if (*(line + i + 1) == '=') {
+					*(nazwaWyrazenia + ++j) = *(line + ++i);
+					//tutaj bedzie operator liczby ujemnej!
+
+				}
+
+				*(nazwaWyrazenia + ++j) = '\0';
+				o::Operator *aktualnyOperator = OperatorList.getOperator(nazwaWyrazenia);
+
+				while (stosOperatorow.current() && aktualnyOperator->priority <= stosOperatorow.current()->priority) {
+					instrukcja->push((stosOperatorow.current()->id));
+					stosOperatorow.pop();
+				}
+				stosOperatorow.push(aktualnyOperator);
+				nowaInstrukcja = false;
+
+			}
+			//resetuj tablice
+			nazwaWyrazenia = new char[max];
+			i++;
 		}
+		i = 0;
+	}
+	//****
+	//**
+
+
+	//dla ostatniej instrukcji
+	//Konwersja na ONP
+	while (stosOperatorow.current()) {
+		instrukcja->push((stosOperatorow.current()->id));
+		stosOperatorow.pop();
+	}
+	kolejkaInstrukcji.push(instrukcja);
+
+	//Wypisywanie rzeczy z kolejkiInstrukcji
+	while (!kolejkaInstrukcji.empty()) {
+		node<queue<char*>*> *node = kolejkaInstrukcji.pop();
+		queue<char*> *instrukcja = node->data;
+		while (!instrukcja->empty()) {
+			cout << (instrukcja->pop()->data) << " ";
+		}
+		cout << endl;
+
 	}
 
-	int rozmiar1 = vars.rozmiar();
-	int rozmiar2 = operatory.rozmiar();
-	int rozmiar3 = liczby.rozmiar();
+	//while (kolejkaInstrukcji.pop()->data->currentElement() != NULL) {
+	//	cout << kolejkaInstrukcji.pop()->data->pop()->data << " ";
+	//}
 
-	for (int i = 0; i < rozmiar1; i++) {
-		std::cout << vars.current();
-		vars.pop();
-	}
-	std::cout << std::endl;
 
-	for (int i = 0; i < rozmiar2; i++) {
-		std::cout << operatory.current();
-		operatory.pop();
-	}
-	std::cout << std::endl;
-	for (int i = 0; i < rozmiar3; i++) {
-		std::cout << liczby.current();
-		liczby.pop();
-	}
-	std::cout << std::endl;
-	return 0;
+
+	////instrukcja
+	//while (stos.current()) {
+	//	instrukcja->add((stos.current()->id));
+	//	stos.pop();
+	//}
+	//cout << endl;
+	//while (instrukcja->current() != NULL) {
+	//	char zn = *instrukcja->current();
+	//	if (czyLitera(zn) || czyCyfra(zn)) {
+	//		onp.push(instrukcja->current());
+	//		instrukcja->del();
+	//	}
+	//	else {
+	//		
+	//		tree* szukany = search(root, onp.current());
+	//		char *wynik = new char[max];
+	//		onp.pop();
+
+	//		o::Operator *op = getOperator(instrukcja->current());
+	//		if (dynamic_cast<o::NOT*>(op)) {
+	//			int wynik_int = dynamic_cast<o::NOT*>(op)->operation(szukany->var);
+	//			
+	//			
+	//			onp.push();
+	//			B = onp.current();
+	//			onp.pop();
+	//		}
+	//		else if (dynamic_cast<o::assign*>(op))
+	//		else {
+
+	//			onp.push(op->operation();
+	//		}
+	//		//
+	//	}
+	//	cout << instrukcja->current() << " ";
+	//}
+
+
+	//tree* szukany = search(root, "abc");
+	//
+	//if (szukany != NULL) {
+	//	cout << "Znaleziono: " << szukany->var.key << " => ";
+	//	cout << szukany->var << endl;
+	//}
+
+	delete line;
+	delete nazwaWyrazenia;
+	delete nazwaZmiennej;
+	std::cout << endl;
+	system("pause");
+	//return 0;
 }
-
 
 
 //	if (zliczajOperacje >= licznikOperacji)

@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Node.h" />
+    <ClInclude Include="OperatorTable.h" />
     <ClInclude Include="operatory.h" />
     <ClInclude Include="queue.h" />
     <ClInclude Include="stack.h" />
