@@ -5,16 +5,15 @@
 template <class T>
 class queue {
 public:
-	node<T> *firstElement;
 	node<T> *head;
 	node<T> *last;
 
-	queue() : head(NULL), last(NULL), firstElement(NULL) {}
+	queue() : head(NULL), last(NULL) {}
 
 	~queue() {
-		while (!empty()) {
-			deleteElement();
-		}
+		//while (!empty()) {
+		//	deleteElement();
+		//}
 	}
 
 	bool empty() {
@@ -39,7 +38,6 @@ public:
 			node<T> *tmp = addNewElement(data);
 			head = tmp;
 			last = tmp;
-			firstElement = tmp;
 		}
 	}
 

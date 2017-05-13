@@ -1,69 +1,110 @@
 #include "operatory.h"
+#include <cstring>
 
-class tree_node {
+class Tree_node {
 public:
-	tree_node *left, *right, *parent;
-	variable var;
-	tree_node(variable var) : left(NULL), right(NULL), var(var)
+	Tree_node *left, *right, *parent;
+	Variable *var;
+	Tree_node(Variable* var) : left(NULL), right(NULL), var(var)
 	{ }
 };
 
 class Tree {
 public:
-	tree_node* root;
-	tree_node* searched;
-
-	Tree() : root(NULL), searched(NULL) {};
+	Tree_node* root;
+	Tree() : root(NULL) {};
 	~Tree() {
-		
+		//usuwanie wszystkich elementow drzewa
+		deleteAll(root);
 	}
-	void add(variable tmp) {
+	void add(Variable* tmp) {
 		if (root != NULL)
 			insert(root, tmp);
 		else {
-			root = new tree_node(tmp);
+			root = new Tree_node(tmp);
 			root->parent = NULL;
 		}
 	}
 
-	void insert(tree_node *N, variable var) {
-		if (*(N->var.key) == *var.key)
+	void insert(Tree_node *node, Variable* newVar) {
+		//if names match
+		if (strcmp(node->var->key, newVar->key) == 0)
 			return;
-		if (*(N->var.key) < *var.key) {
-			if (N->right)
-				insert(N->right, var);
+		int i = 0;
+		while (*(node->var->key + i) != '\0' && *(newVar->key + i) != '\0') {
+			if (*(node->var->key + i) == *(newVar->key + i))
+				i++;
+			else break;
+		}
+		if (*(node->var->key + i) < *(newVar->key + i)) {
+			if (node->right)
+				insert(node->right, newVar);
 			else {
-				N->right = new tree_node(var);
-				N->right->parent = N;
+				node->right = new Tree_node(newVar);
+				node->right->parent = node;
 			}
 		}
 		else {
-			if (N->left)
-				insert(N->left, var);
+			if (node->left)
+				insert(node->left, newVar);
 			else {
-				N->left = new tree_node(var);
-				N->left->parent = N;
+				node->left = new Tree_node(newVar);
+				node->left->parent = node;
 			}
 		}
 	}
 
-	tree_node* search(tree_node* N, char* name)
+	Tree_node* search(Tree_node* node, char* name)
 	{
-		if (N == NULL)
+		if (node == NULL)
 			return NULL;
-		if (*(N->var.key) == *name)
-			return N;
-		if (*(N->var.key) < *name)
-			return search(N->right, name);
+		//if names match
+		if (strcmp(node->var->key, name) == 0)
+			return node;
+		int i = 0;
+		while (*(node->var->key + i) == *(name + i)) {
+				i++;
+		}
+		if (*(node->var->key + i) < *(name + i))
+			return search(node->right, name);
 		else
-			return search(N->left, name);
+			return search(node->left, name);
 	}
 
+	void wypisz_zmienne(Tree_node *n) {
+		if (n == NULL) return;
+
+		if (n->var->toDisplay == true) {
+			std::cout << n->var->key << " ";
+			if (n->var->liczba.value == Nul)
+				std::cout << "Nul";
+			else
+				std::cout << n->var->liczba.value;
+			std::cout << std::endl;
+		}
+		wypisz_zmienne(n->left);
+		wypisz_zmienne(n->right);
+	}
+
+	void deleteAll(Tree_node *node) {
+		if (node == NULL) return;
+		deleteAll(node->left);
+		deleteAll(node->right);
+
+		delete node;
+	}
+
+	//void wypisz_wierzcholki(Tree_node *n) {
+	//	while (n != NULL) {
+	//		printf("%d ", n->var->key);
+	//		n = n->parent;
+	//	}
+	//}
 };
 
 
 
-//int wysokosc(tree_node* N) {
+//int wysokosc(Tree_node* N) {
 //	if (N == NULL) return -1;
 //	int a = wysokosc(N->right);
 //	int b = wysokosc(N->left);
@@ -72,29 +113,10 @@ public:
 //	else return wysokosc(N->left) + 1;
 //}
 //
-void wypisz_inorder(tree_node *n) {
-	if (n == NULL) return;
-	wypisz_inorder(n->left);
 
-	std::cout << n->var.key << " => ";
-	if (n->var.isNul == true)
-		std::cout << "Nul" << std::endl;
-	else
-		std::cout << n->var.value << std::endl;
 
-	wypisz_inorder(n->right);
-};
-
-//void deleteAll()
 //
-//void wypisz_wierzcholki(tree_node *n) {
-//	while (n != NULL) {
-//		printf("%d ", n->var->key);
-//		n = n->parent;
-//	}
-//}
-//
-//int wypisz_l_wierzch(tree_node *n) {
+//int wypisz_l_wierzch(Tree_node *n) {
 //	int i = 0;
 //	while (n != NULL) {
 //		i++;
@@ -103,20 +125,10 @@ void wypisz_inorder(tree_node *n) {
 //	return i;
 //}
 
-//char *suma_lisci(tree_node* n) {
+//char *suma_lisci(Tree_node* n) {
 //	if (!n->left && !n->right) return n->var.key;
 //	char *a = suma_lisci(n->left);
 //	char *b = suma_lisci(n->right);
 //
 //	return a + b;
-//}
-
-
-//std::ostream& operator<<(std::ostream &os, const tree_node& a) {
-//	if (a.var.value)
-//		os << "Nul";
-//	else
-//		os << var.value;
-//
-//	return os;
 //}
