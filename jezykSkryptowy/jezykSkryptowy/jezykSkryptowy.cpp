@@ -6,6 +6,7 @@
 #include "OperatorTable.h"
 
 using namespace std;
+using namespace o;
 
 int length(char *s) {
 	int licznik = 0;
@@ -44,7 +45,7 @@ int intLength(int liczba) {
 	cout << przyklad;
 }
 
-void addNewInstruction(stack<o::Operator*> &stosOperatorow,
+void addNewInstruction(stack<Operator*> &stosOperatorow,
 	queue<MathObject*> *&instrukcja,
 	queue<queue<MathObject*>*> &kolejkaInstrukcji) {
 
@@ -53,6 +54,7 @@ void addNewInstruction(stack<o::Operator*> &stosOperatorow,
 		stosOperatorow.pop();
 	}
 	kolejkaInstrukcji.push(instrukcja);
+	instrukcja = new queue<MathObject*>();
 }
 
 Variable* addNewVariable(char *nazwa, Tree *VariableTree, int isDeclared) {
@@ -148,13 +150,12 @@ int main() {
 	b. przed liczba to do liczby
 	*/
 
-
 	//kolejka instrukcji, ktore sa kolejkami wyrazen
 	queue<queue<MathObject*>*> kolejkaInstrukcji;
 	//przechowuje rozdzielone wyrazenia JEDNEJ instrukcji zapisane w kolejnoœci ONP
 	queue<MathObject*> *instrukcja;
 	//stos operatorow potrzebny do konwersji na ONP
-	stack<o::Operator*> stosOperatorow;
+	stack<Operator*> stosOperatorow;
 	//tablica wszystkich dostepnych operatorow
 	OperatorTable OperatorList;
 
@@ -167,7 +168,7 @@ int main() {
 	instrukcja = new queue<MathObject*>();
 	bool nowaInstrukcja = false;
 	bool whileLoop = false;
-	bool ifStatement = false;
+	bool ifConditional = false;
 	bool czyOperand = false;
 	bool czyPrzeciwny = false;
 
@@ -198,7 +199,7 @@ int main() {
 
 				if (nowaInstrukcja) {
 					addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
-					instrukcja = new queue<MathObject*>();
+					
 				}
 				nowaInstrukcja = true;
 				czyOperand = true;
@@ -226,7 +227,6 @@ int main() {
 
 				if (nowaInstrukcja) {
 					addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
-					instrukcja = new queue<MathObject*>();
 				}
 				nowaInstrukcja = true;
 				czyOperand = true;
@@ -241,17 +241,15 @@ int main() {
 			//***
 			else if (znak == '@') {
 				addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
-				instrukcja = new queue<MathObject*>();
-
+				instrukcja->push(new While());
 				nowaInstrukcja = false;
 				czyOperand = false;
 				whileLoop = true;
 			}
 			else if (znak == '?') {
 				addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
-				instrukcja = new queue<MathObject*>();
-
-				ifStatement = true;
+				instrukcja->push(new Conditional());
+				ifConditional = true;
 				czyOperand = false;
 				nowaInstrukcja = false;
 			}
@@ -261,13 +259,12 @@ int main() {
 			}
 			else if (znak == '}') {
 				addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
-				instrukcja = new queue<MathObject*>();
-
+				instrukcja->push(new EndNawias());
 				nowaInstrukcja = false;
 				czyOperand = false;
 			}
 			else if (znak == '(') {
-				stosOperatorow.push(new o::lnawias());
+				stosOperatorow.push(new LewyNawias());
 				czyOperand = false;
 			}
 			else if (znak == ')') {
@@ -285,7 +282,7 @@ int main() {
 				}
 
 				*(nazwaWyrazenia + ++j) = '\0';
-				o::Operator *aktualnyOperator = OperatorList.getOperator(nazwaWyrazenia);
+				Operator *aktualnyOperator = OperatorList.getOperator(nazwaWyrazenia);
 
 				if (strcmp(aktualnyOperator->key, "-") == 0) {
 					if (czyOperand == false)
@@ -298,7 +295,7 @@ int main() {
 
 				if (czyPrzeciwny == false) {
 					int tmp_priority = 0;
-					if (dynamic_cast<o::assign*>(aktualnyOperator))
+					if (dynamic_cast<Assign*>(aktualnyOperator))
 						tmp_priority = 1;
 					int actualPriority = aktualnyOperator->priority + tmp_priority;
 					while (stosOperatorow.current() && actualPriority <= stosOperatorow.current()->priority) {
@@ -328,7 +325,7 @@ int main() {
 	//pomocniczy stos
 	stack<Number*> stosONP;
 	bool toBeDeleted = false;
-
+	stack<MathObject*> stosWarunkowy;
 	//**
 	//****
 	//WYKONYWANIE KODU
@@ -346,7 +343,7 @@ int main() {
 				stosONP.push(dynamic_cast<Number*>(object));
 			}
 			else if (object->math_type == OPERATOR) {
-				o::Operator *aktualnyOperator = OperatorList.getOperator(object->key);
+				Operator *aktualnyOperator = OperatorList.getOperator(object->key);
 				if (aktualnyOperator == NULL) break;
 				Number *A = stosONP.current();
 				stosONP.pop();
@@ -357,7 +354,7 @@ int main() {
 					stosONP.push(aktualnyOperator->operation(B, A));
 				}
 				else {
-						stosONP.push(dynamic_cast<o::NOT*>(aktualnyOperator)->operation(A));
+						stosONP.push(dynamic_cast<NOT*>(aktualnyOperator)->operation(A));
 				}
 
 			}
@@ -370,7 +367,7 @@ int main() {
 	}
 
 	/*
-	if(whileLoop == false || ifStatement == false)
+	if(whileLoop == false || ifConditional == false)
 	toBeDeleted = true;
 	*/
 

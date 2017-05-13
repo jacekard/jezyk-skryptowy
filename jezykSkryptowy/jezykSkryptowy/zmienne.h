@@ -1,5 +1,6 @@
 #pragma once
 
+#define OPERATOR_COUNT 15
 #define Nul -858993460
 #define max 1000
 
@@ -14,7 +15,7 @@ enum MATH_TYPE {
 	OPERATOR,
 	NUMBER,
 	WHILE_LOOP,
-	IF_STATE
+	CONDITIONAL
 };
 
 class MathObject {
@@ -71,4 +72,22 @@ public:
 		math_type = VARIABLE;
 	};
 	~Variable() {};
+};
+
+class Conditional : public MathObject {
+public:
+	Conditional() {
+		math_type = CONDITIONAL;
+		key = "?";
+	};
+	
+};
+
+class While : public MathObject {
+public:
+	While() {
+		math_type = WHILE_LOOP;
+		key = "@";
+	};
+
 };

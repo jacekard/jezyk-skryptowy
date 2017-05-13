@@ -16,9 +16,9 @@ namespace o {
 		~Operator() {};
 	};
 
-	class plus : public Operator {
+	class Plus : public Operator {
 	public:
-		plus() : Operator("+") {
+		Plus() : Operator("+") {
 			priority = 5;
 			arg_type = TWOARG;
 		}
@@ -28,12 +28,12 @@ namespace o {
 				wynik->setValue(a->value + b->value);
 			return wynik;
 		}
-		~plus() {};
+		~Plus() {};
 	};
 
-	class minus : public Operator {
+	class Minus : public Operator {
 	public:
-		minus() : Operator("-") {
+		Minus() : Operator("-") {
 			priority = 5;
 			arg_type = TWOARG;
 		}
@@ -45,9 +45,9 @@ namespace o {
 		}
 	};
 
-	class multiply : public Operator {
+	class Multiply : public Operator {
 	public:
-		multiply() : Operator("*") {
+		Multiply() : Operator("*") {
 			priority = 6;
 			arg_type = TWOARG;
 		}
@@ -59,9 +59,9 @@ namespace o {
 		}
 	};
 
-	class divide : public Operator {
+	class Divide : public Operator {
 	public:
-		divide() : Operator("/") {
+		Divide() : Operator("/") {
 			priority = 6;
 			arg_type = TWOARG;
 		}
@@ -73,9 +73,9 @@ namespace o {
 		}
 	};
 
-	class modulo : public Operator {
+	class Modulo : public Operator {
 	public:
-		modulo() : Operator("%") {
+		Modulo() : Operator("%") {
 			priority = 6;
 			arg_type = TWOARG;
 		}
@@ -87,9 +87,9 @@ namespace o {
 		}
 	};
 
-	class assign : public Operator {
+	class Assign : public Operator {
 	public:
-		assign() : Operator("=") {
+		Assign() : Operator("=") {
 			priority = 0;
 			arg_type = TWOARG;
 		}
@@ -128,40 +128,40 @@ namespace o {
 		}
 	};
 
-	class lnawias : public Operator {
+	class LewyNawias : public Operator {
 	public:
-		lnawias() : Operator("(") {
+		LewyNawias() : Operator("(") {
 			priority = 0;
 			arg_type = NONE;
 		}
 		Number* operation(Number *a, Number *b) { return NULL; };
 	};
 
-	class pnawias : public Operator {
+	class PrawyNawias : public Operator {
 	public:
-		pnawias() : Operator(")") {
+		PrawyNawias() : Operator(")") {
 			priority = 0;
 			arg_type = NONE;
 		}
 		Number* operation(Number *a, Number *b) {};
 	};
 
-	class lnawias2 : public Operator {
+	class BegNawias : public Operator {
 	public:
-		lnawias2() : Operator("{") {
+		BegNawias() : Operator("{") {
 			priority = 0;
 			arg_type = NONE;
 		}
-		Number* operation(Number *a, Number *b) {};
+		Number* operation(Number *a, Number *b) { return NULL; };
 	};
 
-	class pnawias2 : public Operator {
+	class EndNawias : public Operator {
 	public:
-		pnawias2() : Operator("}") {
+		EndNawias() : Operator("}") {
 			priority = 0;
 			arg_type = NONE;
 		}
-		Number* operation(Number *a, Number *b) {};
+		Number* operation(Number *a, Number *b) { return NULL; };
 	};
 
 	//OPERATORY JEDNOARGUMENTOWE!!

@@ -2,23 +2,22 @@
 #include <iostream>
 #include "operatory.h"
 
-class o::Operator;
-#define OPERATOR_COUNT 15
+using namespace o;
+using namespace std;
 
 class OperatorTable {
 public:
-	o::Operator **tab;
+	Operator **tab;
 	OperatorTable() {
-		using namespace o;
 		tab = new Operator*[OPERATOR_COUNT];
-		tab[0] = new assign();
+		tab[0] = new Assign();
 		tab[1] = new OR();
 		tab[2] = new AND();
-		tab[3] = new o::plus();
-		tab[4] = new o::minus();
-		tab[5] = new divide();
-		tab[6] = new multiply();
-		tab[7] = new modulo();
+		tab[3] = new Plus();
+		tab[4] = new Minus();
+		tab[5] = new Divide();
+		tab[6] = new Multiply();
+		tab[7] = new Modulo();
 
 		tab[8] = new lessThan();
 		tab[9] = new greaterThan();
@@ -30,17 +29,17 @@ public:
 
 	}
 
-	o::Operator* getOperator(char *s) {
+	Operator* getOperator(char *s) {
 		using namespace o;
 
-		if (strcmp(s,"=") == 0) return tab[0]; //assign
+		if (strcmp(s,"=") == 0) return tab[0]; //Assign
 		else if (strcmp(s, "|") == 0) return tab[1]; //OR
 		else if (strcmp(s, "&") == 0) return tab[2]; //AND
-		else if (strcmp(s, "+") == 0) return tab[3]; //plus
-		else if (strcmp(s, "-") == 0) return tab[4]; //minus
-		else if (strcmp(s, "/") == 0) return tab[5]; //divide
-		else if (strcmp(s, "*") == 0) return tab[6]; //multiply
-		else if (strcmp(s, "%") == 0) return tab[7]; //modulo
+		else if (strcmp(s, "+") == 0) return tab[3]; //Plus
+		else if (strcmp(s, "-") == 0) return tab[4]; //Minus
+		else if (strcmp(s, "/") == 0) return tab[5]; //Divide
+		else if (strcmp(s, "*") == 0) return tab[6]; //Multiply
+		else if (strcmp(s, "%") == 0) return tab[7]; //Modulo
 		
 		else if (strcmp(s, "<") == 0) return tab[8]; //lessThan
 		else if (strcmp(s, ">") == 0) return tab[9]; //greaterThan
