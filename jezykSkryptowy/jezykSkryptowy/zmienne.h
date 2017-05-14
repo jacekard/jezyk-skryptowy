@@ -1,6 +1,6 @@
 #pragma once
 
-#define OPERATOR_COUNT 15
+#define OPERATOR_COUNT 16
 #define Nul -858993460
 #define max 1000
 
@@ -53,9 +53,6 @@ public:
 	void setValue(int val) {
 		value = val;
 	};
-	void setInverse() {
-		value = -value;
-	}
 };
 
 class Variable : public MathObject {

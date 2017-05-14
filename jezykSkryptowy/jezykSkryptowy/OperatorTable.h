@@ -2,7 +2,7 @@
 #include <iostream>
 #include "operatory.h"
 
-using namespace o;
+
 using namespace std;
 
 class OperatorTable {
@@ -26,12 +26,10 @@ public:
 		tab[12] = new lessEqualThan();
 		tab[13] = new greaterEqualThan();
 		tab[14] = new NOT();
-
+		tab[15] = new Unary();
 	}
 
 	Operator* getOperator(char *s) {
-		using namespace o;
-
 		if (strcmp(s,"=") == 0) return tab[0]; //Assign
 		else if (strcmp(s, "|") == 0) return tab[1]; //OR
 		else if (strcmp(s, "&") == 0) return tab[2]; //AND

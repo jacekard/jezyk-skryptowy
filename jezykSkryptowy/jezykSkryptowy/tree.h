@@ -3,7 +3,7 @@
 
 class Tree_node {
 public:
-	Tree_node *left, *right, *parent;
+	Tree_node *left, *right, *parent, *next;
 	Variable *var;
 	Tree_node(Variable* var) : left(NULL), right(NULL), var(var)
 	{ }
@@ -12,9 +12,10 @@ public:
 class Tree {
 public:
 	Tree_node* root;
+	queue<Variable*> variableList;
+
 	Tree() : root(NULL) {};
 	~Tree() {
-		//usuwanie wszystkich elementow drzewa
 		deleteAll(root);
 	}
 	void add(Variable* tmp) {
@@ -24,18 +25,21 @@ public:
 			root = new Tree_node(tmp);
 			root->parent = NULL;
 		}
+		variableList.push(tmp);
 	}
 
 	void insert(Tree_node *node, Variable* newVar) {
-		//if names match
+
 		if (strcmp(node->var->key, newVar->key) == 0)
-			return;
+			return; //if names match
+
 		int i = 0;
 		while (*(node->var->key + i) != '\0' && *(newVar->key + i) != '\0') {
 			if (*(node->var->key + i) == *(newVar->key + i))
 				i++;
 			else break;
 		}
+
 		if (*(node->var->key + i) < *(newVar->key + i)) {
 			if (node->right)
 				insert(node->right, newVar);
@@ -54,16 +58,15 @@ public:
 		}
 	}
 
-	Tree_node* search(Tree_node* node, char* name)
-	{
+	Tree_node* search(Tree_node* node, char* name) {
 		if (node == NULL)
 			return NULL;
 		//if names match
 		if (strcmp(node->var->key, name) == 0)
-			return node;
+			return node; //if names match
 		int i = 0;
 		while (*(node->var->key + i) == *(name + i)) {
-				i++;
+			i++;
 		}
 		if (*(node->var->key + i) < *(name + i))
 			return search(node->right, name);
@@ -71,36 +74,32 @@ public:
 			return search(node->left, name);
 	}
 
-	void wypisz_zmienne(Tree_node *n) {
-		if (n == NULL) return;
+	void wypisz_zmienne() {
+		while (!variableList.empty()) {
+			node<Variable*> *n = variableList.pop();
 
-		if (n->var->toDisplay == true) {
-			std::cout << n->var->key << " ";
-			if (n->var->liczba.value == Nul)
-				std::cout << "Nul";
-			else
-				std::cout << n->var->liczba.value;
-			std::cout << std::endl;
+			if (n->data->toDisplay == true) {
+				std::cout << n->data->key << " ";
+				if (n->data->liczba.value == Nul)
+					std::cout << "Nul";
+				else
+					std::cout << n->data->liczba.value;
+				std::cout << std::endl;
+			}
 		}
-		wypisz_zmienne(n->left);
-		wypisz_zmienne(n->right);
 	}
 
-	void deleteAll(Tree_node *node) {
-		if (node == NULL) return;
-		deleteAll(node->left);
-		deleteAll(node->right);
+	void deleteAll(Tree_node *node) {}
 
-		delete node;
-	}
-
-	//void wypisz_wierzcholki(Tree_node *n) {
-	//	while (n != NULL) {
-	//		printf("%d ", n->var->key);
-	//		n = n->parent;
-	//	}
-	//}
 };
+
+//void wypisz_wierzcholki(Tree_node *n) {
+//	while (n != NULL) {
+//		printf("%d ", n->var->key);
+//		n = n->parent;
+//	}
+//}
+
 
 
 

@@ -5,9 +5,6 @@
 #include "tree.h"
 #include "OperatorTable.h"
 
-using namespace std;
-using namespace o;
-
 int length(char *s) {
 	int licznik = 0;
 	while (*(s + licznik) != '\0'){
@@ -167,15 +164,13 @@ int main() {
 
 	instrukcja = new queue<MathObject*>();
 	bool nowaInstrukcja = false;
-	bool whileLoop = false;
-	bool ifConditional = false;
 	bool czyOperand = false;
 	bool czyPrzeciwny = false;
 
-	for (int k = 0; k < 3; k++) {
-		cin.getline(line, max);
-		//PUSHOWANIE ZMIENNYCH I LICZB MUSI NASTAPIC PO NOWEJ INSTRUKCJI!
-		while (1) {
+	while (cin.getline(line, max)) {
+		/*for (int x = 0; x < 3; x++) {
+			cin.getline(line, max);
+		*/while (1) {
 
 			int j = 0;
 			znak = *(line + i);
@@ -197,21 +192,15 @@ int main() {
 				}
 				*(nazwaWyrazenia + ++j) = '\0';
 
-				if (nowaInstrukcja) {
+				if (nowaInstrukcja)
 					addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
-					
-				}
+
 				nowaInstrukcja = true;
 				czyOperand = true;
 
 				Tree_node* node = VariableTree->search(VariableTree->root, nazwaWyrazenia);
-				if (node) {
-					if (czyPrzeciwny) {
-						node->var->liczba.setInverse();
-						czyPrzeciwny = false;
-					}
+				if (node)
 					instrukcja->push(node->var);
-				}
 				else {
 					Variable *newVar = addNewVariable(nazwaWyrazenia, VariableTree, false);
 					instrukcja->push(newVar);
@@ -232,10 +221,6 @@ int main() {
 				czyOperand = true;
 
 				Number *liczba = new Number(nazwaWyrazenia);
-				if (czyPrzeciwny) {
-					liczba->setInverse();
-					czyPrzeciwny = false;
-				}
 				instrukcja->push(liczba);
 			}
 			//***
@@ -244,16 +229,15 @@ int main() {
 				instrukcja->push(new While());
 				nowaInstrukcja = false;
 				czyOperand = false;
-				whileLoop = true;
 			}
 			else if (znak == '?') {
 				addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
 				instrukcja->push(new Conditional());
-				ifConditional = true;
 				czyOperand = false;
 				nowaInstrukcja = false;
 			}
 			else if (znak == '{') {
+				instrukcja->push(new BegNawias());
 				nowaInstrukcja = true;
 				czyOperand = false;
 			}
@@ -264,16 +248,22 @@ int main() {
 				czyOperand = false;
 			}
 			else if (znak == '(') {
+				if (czyOperand == true)
+					addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
 				stosOperatorow.push(new LewyNawias());
 				czyOperand = false;
+				nowaInstrukcja = false;
 			}
 			else if (znak == ')') {
-				while (stosOperatorow.current()->key != "(") {
+
+				while (!dynamic_cast<LewyNawias*>(stosOperatorow.current())) {
 					instrukcja->push(stosOperatorow.current());
 					stosOperatorow.pop();
 				}
+
 				stosOperatorow.pop();
-				czyOperand = false;
+				czyOperand = true;
+				//nowaInstrukcja = false;
 			}
 			//Operatory
 			else {
@@ -281,12 +271,20 @@ int main() {
 					*(nazwaWyrazenia + ++j) = *(line + ++i);
 				}
 
+				//***
+				//POPRAWIC TO WYRAZENIE UNARNE!
+				//****
+
 				*(nazwaWyrazenia + ++j) = '\0';
 				Operator *aktualnyOperator = OperatorList.getOperator(nazwaWyrazenia);
 
-				if (strcmp(aktualnyOperator->key, "-") == 0) {
-					if (czyOperand == false)
+				czyPrzeciwny = false;
+
+				if (*aktualnyOperator->key == '-') {
+					if (czyOperand == false) {
+						instrukcja->push(OperatorList.tab[15]);
 						czyPrzeciwny = true;
+					}
 					else
 						czyPrzeciwny = false;
 				}
@@ -295,7 +293,7 @@ int main() {
 
 				if (czyPrzeciwny == false) {
 					int tmp_priority = 0;
-					if (dynamic_cast<Assign*>(aktualnyOperator))
+					if (dynamic_cast<Assign*>(aktualnyOperator) || dynamic_cast<NOT*>(aktualnyOperator))
 						tmp_priority = 1;
 					int actualPriority = aktualnyOperator->priority + tmp_priority;
 					while (stosOperatorow.current() && actualPriority <= stosOperatorow.current()->priority) {
@@ -325,6 +323,9 @@ int main() {
 	//pomocniczy stos
 	stack<Number*> stosONP;
 	bool toBeDeleted = false;
+	bool whileLoop = false;
+	bool ifConditional = false;
+	czyPrzeciwny = false;
 	stack<MathObject*> stosWarunkowy;
 	//**
 	//****
@@ -336,29 +337,61 @@ int main() {
 			MathObject* object = instrukcja->pop()->data;
 
 			if (object->math_type == VARIABLE) {
-				Tree_node* tmpNode = VariableTree->search(VariableTree->root, object->key);
-				stosONP.push(&tmpNode->var->liczba);
+				//Variable *Var = dynamic_cast<Variable*>(object);
+				Tree_node *node = VariableTree->search(VariableTree->root, object->key);
+				if (czyPrzeciwny) {
+					if (node->var->liczba.value != Nul) {
+						stosONP.push(dynamic_cast<Unary*>(OperatorList.tab[15])->operation(&node->var->liczba));
+						czyPrzeciwny = false;
+						zliczajOperacje++;
+					}
+				}
+				else
+					stosONP.push(&node->var->liczba);
 			}
 			else if (object->math_type == NUMBER) {
-				stosONP.push(dynamic_cast<Number*>(object));
+				if (czyPrzeciwny) {
+					dynamic_cast<Number*>(object)->setValue(-dynamic_cast<Number*>(object)->value);
+					stosONP.push(dynamic_cast<Number*>(object));
+					czyPrzeciwny = false;
+				}
+				else
+					stosONP.push(dynamic_cast<Number*>(object));
 			}
 			else if (object->math_type == OPERATOR) {
-				Operator *aktualnyOperator = OperatorList.getOperator(object->key);
-				if (aktualnyOperator == NULL) break;
-				Number *A = stosONP.current();
-				stosONP.pop();
+				if (dynamic_cast<Unary*>(object)) {
+					czyPrzeciwny = true;
+					continue;
+				}
 
-				if (aktualnyOperator->arg_type == TWOARG) {
+				zliczajOperacje++;
+				if (zliczajOperacje >= licznikOperacji)  break;
+
+
+				Operator *aktualnyOperator = dynamic_cast<Operator*>(object);//OperatorList.getOperator(object->key);
+				if (aktualnyOperator->arg_type == ONEARG) {
+					Number *A = stosONP.current();
+					stosONP.pop();
+					stosONP.push(dynamic_cast<NOT*>(aktualnyOperator)->operation(A));
+				}
+				else {
+					Number *A = stosONP.current();
+					stosONP.pop();
 					Number *B = stosONP.current();
 					stosONP.pop();
 					stosONP.push(aktualnyOperator->operation(B, A));
 				}
-				else {
-						stosONP.push(dynamic_cast<NOT*>(aktualnyOperator)->operation(A));
-				}
-
+			}
+			else if (object->math_type == WHILE_LOOP) {
+				whileLoop = true;
+				stosWarunkowy.push(object);
+			}
+			else if (object->math_type == CONDITIONAL) {
+				stosWarunkowy.push(object);
 			}
 		}
+		if (zliczajOperacje >= licznikOperacji)
+			break;
 		//oproznianie stosu ONP
 		while (stosONP.current()) {
 			stosONP.pop();
@@ -372,33 +405,12 @@ int main() {
 	*/
 
 	cout << zliczajOperacje << endl;
-	VariableTree->wypisz_zmienne(VariableTree->root);
+	VariableTree->wypisz_zmienne();
 
 	delete VariableTree;
 	delete line;
 
-	std::cout << endl;
-	system("pause");
-	//return 0;
+	//std::cout << endl;
+	//system("pause");
+	return 0;
 }
-
-
-//	if (zliczajOperacje >= licznikOperacji)
-//		break;
-//	//	if ()
-//	cout << name;
-//	//if ()
-//}
-
-
-
-//Wypisywanie rzeczy z kolejkiInstrukcji
-/*while (!kolejkaInstrukcji.empty()) {
-node<queue<char*>*> *node = kolejkaInstrukcji.pop();
-queue<char*> *instrukcja = node->data;
-while (!instrukcja->empty()) {
-cout << (instrukcja->pop()->data) << " ";
-}
-cout << endl;
-
-}*/
