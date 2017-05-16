@@ -67,7 +67,10 @@ public:
 	Number* operation(Number *a, Number *b) {
 		Number* wynik = new Number(Nul);
 		if (a->value != Nul && b->value != Nul)
+		if (b->value != 0)
 			wynik->setValue(a->value / b->value);
+		else
+			wynik->setValue(Nul);
 		return wynik;
 	}
 };
@@ -81,7 +84,10 @@ public:
 	Number* operation(Number *a, Number *b) {
 		Number* wynik = new Number(Nul);
 		if (a->value != Nul && b->value != Nul)
+		if (b->value != 0)
 			wynik->setValue(a->value % b->value);
+		else
+			wynik->setValue(Nul);
 		return wynik;
 	}
 };
@@ -93,7 +99,6 @@ public:
 		arg_type = TWOARG;
 	}
 	Number* operation(Number *a, Number *b) {
-		Number* wynik;
 		a->value = b->value;
 		return a;
 	}

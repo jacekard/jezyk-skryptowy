@@ -34,13 +34,8 @@ public:
 			return; //if names match
 
 		int i = 0;
-		while (*(node->var->key + i) != '\0' && *(newVar->key + i) != '\0') {
-			if (*(node->var->key + i) == *(newVar->key + i))
-				i++;
-			else break;
-		}
 
-		if (*(node->var->key + i) < *(newVar->key + i)) {
+		if (strcmp(node->var->key, newVar->key) < 0) {
 			if (node->right)
 				insert(node->right, newVar);
 			else {
@@ -61,14 +56,13 @@ public:
 	Tree_node* search(Tree_node* node, char* name) {
 		if (node == NULL)
 			return NULL;
-		//if names match
+
 		if (strcmp(node->var->key, name) == 0)
 			return node; //if names match
+
 		int i = 0;
-		while (*(node->var->key + i) == *(name + i)) {
-			i++;
-		}
-		if (*(node->var->key + i) < *(name + i))
+
+		if (strcmp(node->var->key, name) < 0)
 			return search(node->right, name);
 		else
 			return search(node->left, name);

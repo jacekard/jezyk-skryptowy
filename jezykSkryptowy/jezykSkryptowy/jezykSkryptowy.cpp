@@ -4,6 +4,17 @@
 #include "Stack.h"
 #include "tree.h"
 #include "OperatorTable.h"
+#include "Instruction.h"
+
+/*
+Declaration in "zmienne.h":
+#define OPERATOR_COUNT 16
+#define Nul -858993460
+#define max 1000
+int zliczajOperacje = 0;
+int licznikOperacji = 0;
+*/
+
 
 int length(char *s) {
 	int licznik = 0;
@@ -43,15 +54,28 @@ int intLength(int liczba) {
 }
 
 void addNewInstruction(stack<Operator*> &stosOperatorow,
-	queue<MathObject*> *&instrukcja,
-	queue<queue<MathObject*>*> &kolejkaInstrukcji) {
+	stack<Instruction*> &stosWarunkowy,
+	Instruction *&instrukcja,
+	queue<Instruction*> &kolejkaInstrukcji,
+	bool isLast) {
+
 
 	while (stosOperatorow.current()) {
-		instrukcja->push((stosOperatorow.current()));
+		instrukcja->output->push((stosOperatorow.current()));
 		stosOperatorow.pop();
 	}
-	kolejkaInstrukcji.push(instrukcja);
-	instrukcja = new queue<MathObject*>();
+
+	//zagnie¿dzanie instrukcji
+
+	if (stosWarunkowy.current() == NULL)
+		kolejkaInstrukcji.push(instrukcja);
+	else if (stosWarunkowy.current()->inst_type == WHILE_LOOP)
+		dynamic_cast<While*>(stosWarunkowy.current())->kolejkaInstrukcji->push(instrukcja);
+	else if (stosWarunkowy.current()->inst_type == CONDITION) {
+		dynamic_cast<Condition*>(stosWarunkowy.current())->kolejkaInstrukcji->push(instrukcja);
+	}
+	if (isLast == false)
+		instrukcja = new SingleInstruction();
 }
 
 Variable* addNewVariable(char *nazwa, Tree *VariableTree, int isDeclared) {
@@ -63,41 +87,10 @@ Variable* addNewVariable(char *nazwa, Tree *VariableTree, int isDeclared) {
 }
 
 int main() {
-	/*
-	Zapamietanie adresu PIERWSZEGO ELEMENTU w kolejce
-
-	0a. Wczytanie licznikaOperacji (OK)
-	0b. Wczytanie zmiennych do drzewa binarnego (OK)
-	1. Rozdzielanie wyra¿eñ (OK)
-	2a. Zamiana na ONP wpisywanie wyra¿eñ do kolejek wyra¿eñ
-	3. Rozdzielenie instrukcji (trzeba rozpoznaæ co to za instrukcja)
-	4. wrzucenie instrukcji do kolejki instrukcji
-	5. Wykonanie kodu
-	6. w momencie rozpoczêcia while'a, zapisujemy tymczasowo adres instrukcji (która jest kolejk¹) na stos<queue*>
-	Dok³adnie zwracamy firstElement
-	*/
-
-
 
 	//**
-	//****
-	int licznikOperacji;
-	int zliczajOperacje = 0;
 	cin >> licznikOperacji;
-	//****
 	//**
-
-	////Przyk³ad dzia³ania kolejki kolejek
-	//queue<queue<char*>*> kolejkaInstrukcji;
-	//queue<char*> *kolejka = new queue<char*>();
-	//kolejkaInstrukcji.push(kolejka);
-	//stack<queue<char*>*> stos_instrukcji;
-	//stos_instrukcji.push(kolejka);
-
-	//node<queue<char*>*> node = kolejkaInstrukcji.pop();
-	//kolejka = node.data;
-	//kolejkaInstrukcji.head = &node;
-	////
 
 	int zliczajZmienne = 0;
 	char *nazwaWyrazenia = new char[max];
@@ -106,7 +99,6 @@ int main() {
 	Tree *VariableTree = new Tree();
 
 	//**
-	//formatowanie
 	cin.getline(line, max);
 	//**
 
@@ -127,7 +119,7 @@ int main() {
 			*(nazwaWyrazenia + ++j) = '\0';
 			j = 0;
 			i++;
-			//dodawanie obiektu 'tmp' ARG_TYPEu Variable do 'VariableTree'
+
 			addNewVariable(nazwaWyrazenia, VariableTree, true);
 			zliczajZmienne++;
 			nazwaWyrazenia = new char[max];
@@ -147,14 +139,15 @@ int main() {
 	b. przed liczba to do liczby
 	*/
 
-	//kolejka instrukcji, ktore sa kolejkami wyrazen
-	queue<queue<MathObject*>*> kolejkaInstrukcji;
-	//przechowuje rozdzielone wyrazenia JEDNEJ instrukcji zapisane w kolejnoœci ONP
-	queue<MathObject*> *instrukcja;
-	//stos operatorow potrzebny do konwersji na ONP
-	stack<Operator*> stosOperatorow;
 	//tablica wszystkich dostepnych operatorow
 	OperatorTable OperatorList;
+	//kolejka instrukcji, ktore sa kolejkami wyrazen
+	queue<Instruction*> kolejkaInstrukcji;
+	//przechowuje rozdzielone wyrazenia JEDNEJ instrukcji zapisane w kolejnoœci ONP
+	Instruction *instrukcja;
+	//stos operatorow potrzebny do konwersji na ONP
+	stack<Operator*> stosOperatorow;
+	stack<Instruction*> stosWarunkowy;
 
 	//**
 	//****
@@ -162,15 +155,15 @@ int main() {
 	znak = *line;
 	i = 0;
 
-	instrukcja = new queue<MathObject*>();
+	instrukcja = new SingleInstruction();
 	bool nowaInstrukcja = false;
 	bool czyOperand = false;
 	bool czyPrzeciwny = false;
 
 	while (cin.getline(line, max)) {
-		/*for (int x = 0; x < 3; x++) {
-			cin.getline(line, max);
-		*/while (1) {
+	//for (int x = 0; x < 2; x++) {
+	//	cin.getline(line, max);
+		while (1) {
 
 			int j = 0;
 			znak = *(line + i);
@@ -192,18 +185,20 @@ int main() {
 				}
 				*(nazwaWyrazenia + ++j) = '\0';
 
-				if (nowaInstrukcja)
-					addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
+				if (nowaInstrukcja) {
+					addNewInstruction(stosOperatorow, stosWarunkowy, instrukcja, kolejkaInstrukcji, false);
+				}
 
 				nowaInstrukcja = true;
 				czyOperand = true;
 
 				Tree_node* node = VariableTree->search(VariableTree->root, nazwaWyrazenia);
-				if (node)
-					instrukcja->push(node->var);
+				if (node) {
+					instrukcja->output->push(node->var);
+				}
 				else {
 					Variable *newVar = addNewVariable(nazwaWyrazenia, VariableTree, false);
-					instrukcja->push(newVar);
+					instrukcja->output->push(newVar);
 				}
 			}
 			//***
@@ -214,42 +209,62 @@ int main() {
 				}
 				*(nazwaWyrazenia + j + 1) = '\0';
 
-				if (nowaInstrukcja) {
-					addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
-				}
+				if (nowaInstrukcja)
+					addNewInstruction(stosOperatorow, stosWarunkowy, instrukcja, kolejkaInstrukcji, false);
+
 				nowaInstrukcja = true;
 				czyOperand = true;
 
 				Number *liczba = new Number(nazwaWyrazenia);
-				instrukcja->push(liczba);
+				instrukcja->output->push(liczba);
 			}
 			//***
 			else if (znak == '@') {
-				addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
-				instrukcja->push(new While());
+				if (!instrukcja->output->empty())
+					addNewInstruction(stosOperatorow, stosWarunkowy, instrukcja, kolejkaInstrukcji, false);
+
+				Instruction *instWarunkowa = new While();
+				stosWarunkowy.push(instWarunkowa);
+
 				nowaInstrukcja = false;
 				czyOperand = false;
 			}
 			else if (znak == '?') {
-				addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
-				instrukcja->push(new Conditional());
-				czyOperand = false;
+				if (!instrukcja->output->empty())
+					addNewInstruction(stosOperatorow, stosWarunkowy, instrukcja, kolejkaInstrukcji, false);
+
+				Instruction *instWarunkowa = new Condition();
+				stosWarunkowy.push(instWarunkowa);
+
 				nowaInstrukcja = false;
+				czyOperand = false;
 			}
 			else if (znak == '{') {
-				instrukcja->push(new BegNawias());
+				/*	instrukcja->output->push(new BegNawias());*/
 				nowaInstrukcja = true;
 				czyOperand = false;
 			}
 			else if (znak == '}') {
-				addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
-				instrukcja->push(new EndNawias());
-				nowaInstrukcja = false;
+				if (!instrukcja->output->empty())
+					addNewInstruction(stosOperatorow, stosWarunkowy, instrukcja, kolejkaInstrukcji, false);
+
+				if (stosWarunkowy.previous()) {
+					if (stosWarunkowy.previous()->inst_type == WHILE_LOOP)
+						dynamic_cast<While*>(stosWarunkowy.previous())->kolejkaInstrukcji->push(stosWarunkowy.current());
+						if (stosWarunkowy.previous()->inst_type == CONDITION)
+					dynamic_cast<Condition*>(stosWarunkowy.previous())->kolejkaInstrukcji->push(stosWarunkowy.current());
+				}
+				else
+					kolejkaInstrukcji.push(stosWarunkowy.current());
+
+				stosWarunkowy.pop();
+				nowaInstrukcja = true;
 				czyOperand = false;
 			}
 			else if (znak == '(') {
 				if (czyOperand == true)
-					addNewInstruction(stosOperatorow, instrukcja, kolejkaInstrukcji);
+					addNewInstruction(stosOperatorow, stosWarunkowy, instrukcja, kolejkaInstrukcji, false);
+
 				stosOperatorow.push(new LewyNawias());
 				czyOperand = false;
 				nowaInstrukcja = false;
@@ -257,7 +272,7 @@ int main() {
 			else if (znak == ')') {
 
 				while (!dynamic_cast<LewyNawias*>(stosOperatorow.current())) {
-					instrukcja->push(stosOperatorow.current());
+					instrukcja->output->push(stosOperatorow.current());
 					stosOperatorow.pop();
 				}
 
@@ -282,7 +297,8 @@ int main() {
 
 				if (*aktualnyOperator->key == '-') {
 					if (czyOperand == false) {
-						instrukcja->push(OperatorList.tab[15]);
+						instrukcja->output->push(OperatorList.tab[15]);
+
 						czyPrzeciwny = true;
 					}
 					else
@@ -297,7 +313,7 @@ int main() {
 						tmp_priority = 1;
 					int actualPriority = aktualnyOperator->priority + tmp_priority;
 					while (stosOperatorow.current() && actualPriority <= stosOperatorow.current()->priority) {
-						instrukcja->push((stosOperatorow.current()));
+						instrukcja->output->push((stosOperatorow.current()));
 						stosOperatorow.pop();
 					}
 					stosOperatorow.push(aktualnyOperator);
@@ -312,97 +328,24 @@ int main() {
 		i = 0;
 	}
 	//dla ostatniej instrukcji
-	while (stosOperatorow.current()) {
-		instrukcja->push((stosOperatorow.current()));
-		stosOperatorow.pop();
-	}
-	kolejkaInstrukcji.push(instrukcja);
+	if (!instrukcja->output->empty())
+		addNewInstruction(stosOperatorow, stosWarunkowy, instrukcja, kolejkaInstrukcji, true);
+
+
+
 	//****
 	//**
 
-	//pomocniczy stos
-	stack<Number*> stosONP;
-	bool toBeDeleted = false;
-	bool whileLoop = false;
-	bool ifConditional = false;
-	czyPrzeciwny = false;
-	stack<MathObject*> stosWarunkowy;
 	//**
-	//****
-	//WYKONYWANIE KODU
+	//WYKONANIE KODU
 	while (!kolejkaInstrukcji.empty()) {
-		node<queue<MathObject*>*> *node = kolejkaInstrukcji.pop();
-		queue<MathObject*> *instrukcja = node->data;
-		while (!instrukcja->empty()) {
-			MathObject* object = instrukcja->pop()->data;
+		node<Instruction*> *node = kolejkaInstrukcji.pop();
+		node->data->SpecialExecute(OperatorList);
 
-			if (object->math_type == VARIABLE) {
-				//Variable *Var = dynamic_cast<Variable*>(object);
-				Tree_node *node = VariableTree->search(VariableTree->root, object->key);
-				if (czyPrzeciwny) {
-					if (node->var->liczba.value != Nul) {
-						stosONP.push(dynamic_cast<Unary*>(OperatorList.tab[15])->operation(&node->var->liczba));
-						czyPrzeciwny = false;
-						zliczajOperacje++;
-					}
-				}
-				else
-					stosONP.push(&node->var->liczba);
-			}
-			else if (object->math_type == NUMBER) {
-				if (czyPrzeciwny) {
-					dynamic_cast<Number*>(object)->setValue(-dynamic_cast<Number*>(object)->value);
-					stosONP.push(dynamic_cast<Number*>(object));
-					czyPrzeciwny = false;
-				}
-				else
-					stosONP.push(dynamic_cast<Number*>(object));
-			}
-			else if (object->math_type == OPERATOR) {
-				if (dynamic_cast<Unary*>(object)) {
-					czyPrzeciwny = true;
-					continue;
-				}
-
-				zliczajOperacje++;
-				if (zliczajOperacje >= licznikOperacji)  break;
-
-
-				Operator *aktualnyOperator = dynamic_cast<Operator*>(object);//OperatorList.getOperator(object->key);
-				if (aktualnyOperator->arg_type == ONEARG) {
-					Number *A = stosONP.current();
-					stosONP.pop();
-					stosONP.push(dynamic_cast<NOT*>(aktualnyOperator)->operation(A));
-				}
-				else {
-					Number *A = stosONP.current();
-					stosONP.pop();
-					Number *B = stosONP.current();
-					stosONP.pop();
-					stosONP.push(aktualnyOperator->operation(B, A));
-				}
-			}
-			else if (object->math_type == WHILE_LOOP) {
-				whileLoop = true;
-				stosWarunkowy.push(object);
-			}
-			else if (object->math_type == CONDITIONAL) {
-				stosWarunkowy.push(object);
-			}
-		}
 		if (zliczajOperacje >= licznikOperacji)
 			break;
-		//oproznianie stosu ONP
-		while (stosONP.current()) {
-			stosONP.pop();
-		}
-		if (toBeDeleted) delete instrukcja;
 	}
-
-	/*
-	if(whileLoop == false || ifConditional == false)
-	toBeDeleted = true;
-	*/
+	//**
 
 	cout << zliczajOperacje << endl;
 	VariableTree->wypisz_zmienne();

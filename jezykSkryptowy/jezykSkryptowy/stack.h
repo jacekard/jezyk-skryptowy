@@ -39,6 +39,11 @@ public:
 			return stackPtr->data;
 		else return NULL;
 	}
+	T previous() {
+		if (stackPtr->next != NULL)
+			return stackPtr->next->data;
+		else return NULL;
+	}
 	int rozmiar() {
 		node<T> *tmp = stackPtr;
 		int a = 0;

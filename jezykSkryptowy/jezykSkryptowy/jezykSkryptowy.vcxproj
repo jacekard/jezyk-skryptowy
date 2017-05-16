@@ -82,6 +82,7 @@
     <ClCompile Include="jezykSkryptowy.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Instruction.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="OperatorTable.h" />
     <ClInclude Include="operatory.h" />

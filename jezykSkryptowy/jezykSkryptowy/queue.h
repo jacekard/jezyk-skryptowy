@@ -4,9 +4,11 @@
 
 template <class T>
 class queue {
+	node < T > *backup;
 public:
 	node<T> *head;
 	node<T> *last;
+	node<T> *first;
 
 	queue() : head(NULL), last(NULL) {}
 
@@ -15,7 +17,13 @@ public:
 		//	deleteElement();
 		//}
 	}
-
+	void remember(){
+		backup = first;
+	}
+	void recall(){
+		first = backup;
+		head = backup;
+	}
 	bool empty() {
 		if (head == NULL) return 1;
 		else return 0;
@@ -38,6 +46,7 @@ public:
 			node<T> *tmp = addNewElement(data);
 			head = tmp;
 			last = tmp;
+			first = tmp;
 		}
 	}
 
@@ -50,9 +59,15 @@ public:
 		else return NULL;
 	}
 
-	T currentElement() {
+	node<T>* currentElement() {
 		if (!empty())
-			return head->data;
+			return head;
+		else return NULL;
+	}
+
+	node<T>* firstElement() {
+		if (!empty())
+			return first;
 		else return NULL;
 	}
 

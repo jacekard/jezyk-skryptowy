@@ -3,6 +3,8 @@
 #define OPERATOR_COUNT 16
 #define Nul -858993460
 #define max 1000
+int zliczajOperacje = 0;
+int licznikOperacji = 0;
 
 enum ARG_TYPE {
 	ONEARG,
@@ -14,9 +16,9 @@ enum MATH_TYPE {
 	VARIABLE,
 	OPERATOR,
 	NUMBER,
-	WHILE_LOOP,
-	CONDITIONAL
 };
+
+
 
 class MathObject {
 public:
@@ -37,12 +39,16 @@ public:
 	int value;
 	Number() : value(Nul) {
 		math_type = NUMBER;
+		key = "#";
 	};
 	Number(int val) : value(val) {
 		math_type = NUMBER;
+		key = "#";
 	};
 	Number(char *name) : MathObject(name), value(0) {
 		math_type = NUMBER;
+		key = "#";
+
 		int i = 0;
 		while (*(name + i) != '\0') {
 			value *= 10;
@@ -69,22 +75,4 @@ public:
 		math_type = VARIABLE;
 	};
 	~Variable() {};
-};
-
-class Conditional : public MathObject {
-public:
-	Conditional() {
-		math_type = CONDITIONAL;
-		key = "?";
-	};
-	
-};
-
-class While : public MathObject {
-public:
-	While() {
-		math_type = WHILE_LOOP;
-		key = "@";
-	};
-
 };
