@@ -48,14 +48,6 @@ public:
 		
 		else if (strcmp(s, "!") == 0) return tab[14]; //NOT();
 
-		//if (*(s + 1) == '=') {
-		//	if (*s == '!')		return tab[3];//new 
-		//	else if (*s == '=') return tab[4];//new 
-		//	else if (*s == '<') return tab[7];//new 
-		//	else if (*s == '>') return tab[8];//new 
-		//	else return NULL;
-		//}
-
 		else return NULL;
 	}
 
